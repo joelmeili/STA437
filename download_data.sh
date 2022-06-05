@@ -5,4 +5,4 @@ URL='https://docs.google.com/uc?export=download&id='$FILEID
 
 gdown $URL -O $FILENAME
 unzip COVID-19-20.zip && rm COVID-19-20.zip
-mkdir images && cp -a COVID-19-20_v2/Train/. images/ && rm -rf COVID-19-20/
+mkdir images && cp -a COVID-19-20_v2/Train/. images/ && rm -rf COVID-19-20_v2/
