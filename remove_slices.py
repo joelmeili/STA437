@@ -5,7 +5,7 @@ all_masks = sorted(glob("masks_sliced/*.png"))
 empty_masks = []
 
 for mask in all_masks:
-  img = imread(self.masks[idx], cv2.IMREAD_GRAYSCALE)
+  img = imread(mask, cv2.IMREAD_GRAYSCALE)
   if img.max() == 0:
     empty_masks.append(mask)
     
