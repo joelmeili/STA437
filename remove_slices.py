@@ -1,4 +1,4 @@
-import cv2
+import cv2, os
 
 from glob import glob
 from cv2 import imread
@@ -13,4 +13,7 @@ for mask in all_masks:
     
 empty_images = ["cts_sliced/" + mask.split("/")[1] for mask in empty_masks]
 
-print(empty_images)
+empty_files = empty_masks + empty_images
+
+for file in empty_files:
+  os.remove(file)
