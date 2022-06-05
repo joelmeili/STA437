@@ -1,3 +1,5 @@
+import cv2
+
 from glob import glob
 from cv2 import imread
 
