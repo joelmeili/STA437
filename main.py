@@ -12,7 +12,7 @@ from torchvision.utils import make_grid
 import cv2
 
 # set transforms
-IMAGE_SIZE = 512
+IMAGE_SIZE = 256
 
 train_transforms = albu.Compose(
     [
