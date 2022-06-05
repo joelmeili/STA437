@@ -1,4 +1,4 @@
-import re, random, torch
+import re, random, torch, cv2
 import albumentations as albu
 import matplotlib.pyplot as plt
 import segmentation_models_pytorch as smp
@@ -9,10 +9,11 @@ from cv2 import imread
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torchvision.utils import make_grid
-import cv2
+from torch.utils.tensorboard import SummaryWriter
 
 # set transforms
 IMAGE_SIZE = 256
+writer = SummaryWriter()
 
 train_transforms = albu.Compose(
     [
@@ -149,7 +150,12 @@ if __name__ == "__main__":
         print('\nEpoch: {}'.format(i))
         train_logs = train_epoch.run(train)
         valid_logs = valid_epoch.run(val)
-
+        
+        writer.add_scalar("Loss/train", train_logs["loss"], i)
+        writer.add_scalar("Loss/valid", valid_logs["loss"], i)
+        
         # do something (save model, change lr, etc.)
         if max_score < valid_logs['iou_score']:
             max_score = valid_logs['iou_score']
+    
+    writer.flush()
