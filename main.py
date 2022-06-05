@@ -124,7 +124,7 @@ if __name__ == "__main__":
     ]
 
     optimizer = torch.optim.Adam([
-        dict(params=model.parameters(), lr=1e-4)])
+        dict(params=model.parameters(), lr=1e-3)])
 
     train_epoch = smp.utils.train.TrainEpoch(
         model,
