@@ -151,8 +151,8 @@ if __name__ == "__main__":
         train_logs = train_epoch.run(train)
         valid_logs = valid_epoch.run(val)
         
-        writer.add_scalar("Loss/train", train_logs["loss"], i)
-        writer.add_scalar("Loss/valid", valid_logs["loss"], i)
+        writer.add_scalar("Loss/train", train_logs["dice_loss"], i)
+        writer.add_scalar("Loss/valid", valid_logs["dice_loss"], i)
         
         # do something (save model, change lr, etc.)
         if max_score < valid_logs['iou_score']:
