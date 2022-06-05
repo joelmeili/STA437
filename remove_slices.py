@@ -11,4 +11,6 @@ for mask in all_masks:
   if img.max() == 0:
     empty_masks.append(mask)
     
-print(empty_masks, len(empty_masks), len(all_masks))
+empty_images = ["cts_sliced/" + mask.split("/")[1] for mask in empty_masks]
+
+print(empty_images)
