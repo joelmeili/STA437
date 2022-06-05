@@ -11,4 +11,4 @@ for mask in all_masks:
   if img.max() == 0:
     empty_masks.append(mask)
     
-print(empty_masks)
+print(empty_masks, len(empty_masks), len(all_masks))
