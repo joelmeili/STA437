@@ -3,3 +3,4 @@ med2image
 albumentations
 matplotlib
 segmentation_models
+gdown
