@@ -13,7 +13,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 # set transforms
 IMAGE_SIZE = 256
-writer = SummaryWriter()
+writer = SummaryWriter("test")
 
 train_transforms = albu.Compose(
     [
