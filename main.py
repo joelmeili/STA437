@@ -144,7 +144,7 @@ if __name__ == "__main__":
     # train model for 40 epochs
     max_score = 0
 
-    for i in range(0, 40):
+    for i in range(0, 20):
 
         print('\nEpoch: {}'.format(i))
         train_logs = train_epoch.run(train)
