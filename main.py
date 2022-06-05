@@ -18,9 +18,9 @@ writer = SummaryWriter("test")
 train_transforms = albu.Compose(
     [
         albu.Resize(IMAGE_SIZE, IMAGE_SIZE),
-        albu.Rotate(limit=35, p=1.0),
-        albu.HorizontalFlip(p=0.5),
-        albu.VerticalFlip(p=0.1),
+        #albu.Rotate(limit=35, p=1.0),
+        #albu.HorizontalFlip(p=0.5),
+        #albu.VerticalFlip(p=0.1),
         albu.Normalize(),
         ToTensor(transpose_mask=True)
     ]
