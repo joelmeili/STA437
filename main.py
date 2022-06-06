@@ -16,19 +16,16 @@ from monai.data import create_test_image_2d, list_data_collate, decollate_batch
 from monai.inferers import sliding_window_inference
 from monai.metrics import DiceMetric
 from monai.transforms import (
-Activations,
-AddChanneld,
-AsDiscrete,
-Compose,
-LoadImaged,
-RandCropByPosNegLabeld,
-RandRotate90d,
-ScaleIntensityd,
-EnsureTyped,
-EnsureType,
-) 
-
-writer = SummaryWriter()
+    Activations,
+    AddChanneld,
+    AsDiscrete,
+    Compose,
+    LoadImaged,
+    RandCropByPosNegLabeld,
+    RandRotate90d,
+    ScaleIntensityd,
+    EnsureTyped,
+    EnsureType) 
 
 def custom_collate(batch):
     images = torch.cat([torch.as_tensor(np.transpose(item_["img"], (3, 0, 1, 2))) for item in batch for item_ in item], 0).contiguous()
@@ -36,13 +33,9 @@ def custom_collate(batch):
     
     return [images, segs]
 
-if __name__ == "__main__":
+def create_data_splits(train_split, tets_split):
+    # get path to all volumes
     images = sorted(glob("images/*_ct.nii.gz"))
-    
-    # HYPERPARAMETERS
-    train_split = 0.7
-    test_split = 0.1
-    batch_size = 2
 
     random.seed(2020)
     train_images = random.sample(images, int(train_split * len(images)))
@@ -57,10 +50,68 @@ if __name__ == "__main__":
     train_files = [{"img": img, "seg": seg} for img, seg in zip(train_images, train_segs)]
     val_files = [{"img": img, "seg": seg} for img, seg in zip(val_images, val_segs)]
     test_files = [{"img": img, "seg": seg} for img, seg in zip(test_images, test_segs)]
+
+    return train_files, val_files, test_files
+
+def train_model(model):
+        writer = SummaryWriter(log_dir = "runs/test")
+
+        loss = smp.utils.losses.DiceLoss()
+
+        metrics = [
+        smp.utils.metrics.IoU(threshold = 0.5)
+        ]
+
+        optimizer = torch.optim.Adam([
+            dict(params = model.parameters(), lr = 1e-3)])
+        
+        train_epoch = smp.utils.train.TrainEpoch(
+        model,
+        loss = loss,
+        metrics = metrics,
+        optimizer = optimizer,
+        device = "cuda",
+        verbose = True)
+
+        valid_epoch = smp.utils.train.ValidEpoch(
+            model,
+            loss = loss,
+            metrics = metrics,
+            device = "cuda",
+            verbose = True)
+
+        # train model for 40 epochs
+        max_score = 0
+
+
+        for i in range(0, 20):
+
+            print("\nEpoch: {}".format(i))
+            train_logs = train_epoch.run(train_loader)
+            valid_logs = valid_epoch.run(val_loader)
+
+            writer.add_scalar("Loss/Train", train_logs["dice_loss"], i)
+            writer.add_scalar("Loss/Valid", valid_logs["dice_loss"], i)
+
+            writer.add_scalar("Score/Train", train_logs["iou_score"], i)
+            writer.add_scalar("Score/Valid", valid_logs["iou_score"], i)
+            
+            # do something (save model, change lr, etc.)
+            if max_score < valid_logs["iou_score"]:
+                max_score = valid_logs["iou_score"]
+
+        writer.flush()
+
+if __name__ == "__main__":    
+    # HYPERPARAMETERS
+    train_split = 0.7
+    test_split = 0.1
+    batch_size = 2
+
+    train_files, val_files, test_files = create_data_splits(train_split, test_split)
     
     # define transforms for image and segmentation
-    train_transforms = Compose(
-    [
+    train_transforms = Compose([
     LoadImaged(keys = ["img", "seg"]),
     AddChanneld(keys = ["img", "seg"]),
     ScaleIntensityd(keys = ["img", "seg"]),
@@ -69,11 +120,9 @@ if __name__ == "__main__":
     ),
     #RandRotate90d(keys=["img", "seg"], prob=0.5, spatial_axes=[0, 1]),
     #EnsureTyped(keys=["img", "seg"]),
-    ]
-    )
+    ])
     
-    val_transforms = Compose(
-    [
+    val_transforms = Compose([
     LoadImaged(keys = ["img", "seg"]),
     AddChanneld(keys = ["img", "seg"]),
     ScaleIntensityd(keys = ["img", "seg"]),
@@ -88,62 +137,18 @@ if __name__ == "__main__":
     train_ds,
     batch_size = batch_size,
     shuffle = True,
-    num_workers = 4,
+    num_workers = 8,
     collate_fn = custom_collate,
-    pin_memory = torch.cuda.is_available(),
-    )
+    pin_memory = torch.cuda.is_available())
     
     # create a validation data loader
     val_ds = monai.data.Dataset(data = val_files, transform = val_transforms)
-    val_loader = DataLoader(val_ds, batch_size = batch_size, num_workers = 4, collate_fn = custom_collate) 
-    
+    val_loader = DataLoader(val_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
+
     model = smp.FPN(encoder_name = "resnet34",
-                    classes = 1,
-                    encoder_weights = "imagenet",
-                    in_channels = 1,
-                    activation = "sigmoid"
-                    )
+                classes = 1,
+                encoder_weights = "imagenet",
+                in_channels = 1,
+                activation = "sigmoid")
 
-    loss = smp.utils.losses.DiceLoss()
-
-    metrics = [
-        smp.utils.metrics.IoU(threshold = 0.5)
-    ]
-
-    optimizer = torch.optim.Adam([
-        dict(params=model.parameters(), lr = 1e-3)])
-
-    train_epoch = smp.utils.train.TrainEpoch(
-        model,
-        loss = loss,
-        metrics = metrics,
-        optimizer = optimizer,
-        device = "cuda",
-        verbose = True)
-
-    valid_epoch = smp.utils.train.ValidEpoch(
-        model,
-        loss = loss,
-        metrics = metrics,
-        device = "cuda",
-        verbose = True)
-
-    # train model for 40 epochs
-    max_score = 0
-
-    for i in range(0, 20):
-
-        print("\nEpoch: {}".format(i))
-        train_logs = train_epoch.run(train_loader)
-        valid_logs = valid_epoch.run(val_loader)
-
-        writer.add_scalars("Loss/DiceLoss", {"train": train_logs["dice_loss"],
-                                            "valid": valid_logs["dice_loss"]}, i)
-        writer.add_scalars("Score/IoU", {"train": train_logs["iou_score"],
-                                        "valid": valid_logs["iou_score"]}, i)
-        
-        # do something (save model, change lr, etc.)
-        if max_score < valid_logs["iou_score"]:
-            max_score = valid_logs["iou_score"]
-
-    writer.flush()
+    train_model(model = model)
