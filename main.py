@@ -175,7 +175,5 @@ if __name__ == "__main__":
                             # do something (save model, change lr, etc.)
                             if max_score < valid_logs["iou_score"]:
                                 max_score = valid_logs["iou_score"]
-                                torch.save(model, "model_batch=" + str(batch_size) + "train=" + str(train_split) + "test=" + str(test_split) + "opt=" + opt + "_lr=" + str(lr) + ".pth")
-                                print("Model saved!")
 
                         writer.flush()
