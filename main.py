@@ -31,25 +31,6 @@ EnsureType,
 # set transforms
 writer = SummaryWriter()
 
-train_transforms = albu.Compose(
-    [
-        albu.Resize(IMAGE_SIZE, IMAGE_SIZE),
-        #albu.Rotate(limit=35, p=1.0),
-        #albu.HorizontalFlip(p=0.5),
-        #albu.VerticalFlip(p=0.1),
-        albu.Normalize(),
-        ToTensor(transpose_mask=True)
-    ]
-)
-
-val_transforms = albu.Compose(
-    [
-        albu.Resize(IMAGE_SIZE, IMAGE_SIZE),
-        albu.Normalize(),
-        ToTensor(transpose_mask=True)
-    ]
-)
-
 def custom_collate(batch):
     images = torch.cat([torch.as_tensor(np.transpose(item_["img"], (3, 0, 1, 2))) for item in batch for item_ in item], 0).contiguous()
     segs = torch.cat([torch.as_tensor(np.transpose(item_["seg"], (3, 0, 1, 2))) for item in batch for item_ in item], 0).contiguous()
@@ -154,7 +135,14 @@ if __name__ == "__main__":
         print("\nEpoch: {}".format(i))
         train_logs = train_epoch.run(train_loader)
         valid_logs = valid_epoch.run(val_loader)
+
+        writer.add_scalars("Loss/DiceLoss", {"train": train_logs["dice_loss"],
+                                            "valid": valid_logs["dice_loss"]}, i)
+        writer.add_scalars("Score/IoU", {"train": train_logs["iou_score"],
+                                        "valid": valid_logs["iou_score"]}, i)
         
         # do something (save model, change lr, etc.)
         if max_score < valid_logs["iou_score"]:
             max_score = valid_logs["iou_score"]
+
+    writer.flush()
