@@ -2,6 +2,7 @@ import re, random, torch, cv2
 import albumentations as albu
 import matplotlib.pyplot as plt
 import segmentation_models_pytorch as smp
+import numpy as np
 
 from glob import glob
 from albumentations.pytorch import ToTensorV2 as ToTensor
@@ -10,6 +11,23 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torchvision.utils import make_grid
 from torch.utils.tensorboard import SummaryWriter
+
+import monai
+from monai.data import create_test_image_2d, list_data_collate, decollate_batch
+from monai.inferers import sliding_window_inference
+from monai.metrics import DiceMetric
+from monai.transforms import (
+Activations,
+AddChanneld,
+AsDiscrete,
+Compose,
+LoadImaged,
+RandCropByPosNegLabeld,
+RandRotate90d,
+ScaleIntensityd,
+EnsureTyped,
+EnsureType,
+) 
 
 # set transforms
 IMAGE_SIZE = 256
@@ -53,9 +71,67 @@ class SegmentationDataSet(Dataset):
         augmented["mask"] = torch.where(augmented["mask"] == 255, 1, 0)
 
         return augmented["image"], augmented["mask"].unsqueeze(0)
+    """
+def custom_collate(batch):
+    images = torch.stack([torch.as_tensor(np.transpose(item_, (2, 0, 1))) for item in batch for item_ in item[0]["img"]], 0).contiguous()
+    segs = torch.stack([torch.as_tensor(np.transpose(item_, (2, 0, 1))) for item in batch for item_ in item[0]["seg"]], 0).contiguous()
+    
+    return [images, segs]
+    """
 
+def custom_collate(batch):
+    images = torch.cat([torch.as_tensor(np.transpose(item_["img"], (3, 0, 1, 2))) for item in batch for item_ in item], 0).contiguous()
+    segs = torch.cat([torch.as_tensor(np.transpose(item_["seg"], (3, 0, 1, 2))) for item in batch for item_ in item], 0).contiguous()
+    
+    return [images, segs]
 
 if __name__ == "__main__":
+    images = sorted(glob("images/*_ct.nii.gz"))
+    segs = sorted(glob("images/*_seg.nii.gz"))
+    
+    train_files = [{"img": img, "seg": seg} for img, seg in zip(images[:140], segs[:140])]
+    val_files = [{"img": img, "seg": seg} for img, seg in zip(images[140:160], segs[140:160])]
+    
+    # define transforms for image and segmentation
+    train_transforms = Compose(
+    [
+    LoadImaged(keys=["img", "seg"]),
+    AddChanneld(keys=["img", "seg"]),
+    ScaleIntensityd(keys=["img", "seg"]),
+    RandCropByPosNegLabeld(
+    keys=["img", "seg"], label_key="seg", spatial_size=[512, 512, 1], pos=1, neg=1, num_samples=8
+    ),
+    #RandRotate90d(keys=["img", "seg"], prob=0.5, spatial_axes=[0, 1]),
+    #EnsureTyped(keys=["img", "seg"]),
+    ]
+    )
+    
+    val_transforms = Compose(
+    [
+    LoadImaged(keys=["img", "seg"]),
+    AddChanneld(keys=["img", "seg"]),
+    ScaleIntensityd(keys=["img", "seg"]),
+    RandCropByPosNegLabeld(
+    keys=["img", "seg"], label_key="seg", spatial_size=[512, 512, 1], pos=1, neg=1, num_samples=8
+    )])
+    
+    # create a training data loader
+    train_ds = monai.data.Dataset(data = train_files, transform = train_transforms)
+    # use batch_size=2 to load images and use RandCropByPosNegLabeld to generate 2 x 4 images for network training
+    train_loader = DataLoader(
+    train_ds,
+    batch_size=2,
+    shuffle=True,
+    num_workers=4,
+    collate_fn=custom_collate,
+    pin_memory=torch.cuda.is_available(),
+    )
+    
+    # create a validation data loader
+    val_ds = monai.data.Dataset(data=val_files, transform=val_transforms)
+    val_loader = DataLoader(val_ds, batch_size=1, num_workers=1, collate_fn=custom_collate) 
+    
+    """
     all_images = sorted(glob("cts_sliced/*.png"))
     all_masks = sorted(glob("masks_sliced/*.png"))
 
@@ -110,11 +186,12 @@ if __name__ == "__main__":
 
     plt.imshow(img_grid.permute(1, 2, 0))
     plt.imshow(mask_grid.permute(1, 2, 0), alpha=0.6)
-
+    """
+    
     model = smp.FPN(encoder_name="resnet34",
                     classes=1,
                     encoder_weights="imagenet",  # use `imagenet` pre-trained weights for encoder initialization
-                    in_channels=3,  # model input channels (1 for gray-scale images, 3 for RGB, etc.)
+                    in_channels=1,  # model input channels (1 for gray-scale images, 3 for RGB, etc.)
                     activation='sigmoid'
                     )
 
@@ -132,14 +209,14 @@ if __name__ == "__main__":
         loss=loss,
         metrics=metrics,
         optimizer=optimizer,
-        device="cuda",
+        #device="cuda",
         verbose=True)
 
     valid_epoch = smp.utils.train.ValidEpoch(
         model,
         loss=loss,
         metrics=metrics,
-        device="cuda",
+        #device="cuda",
         verbose=True)
 
     # train model for 40 epochs
@@ -148,14 +225,9 @@ if __name__ == "__main__":
     for i in range(0, 20):
 
         print('\nEpoch: {}'.format(i))
-        train_logs = train_epoch.run(train)
-        valid_logs = valid_epoch.run(val)
-        
-        writer.add_scalars("Loss/DiceLoss", {"train": train_logs["dice_loss"],
-                                            "valid": valid_logs["dice_loss"]}, i)
+        train_logs = train_epoch.run(train_loader)
+        valid_logs = valid_epoch.run(val_loader)
         
         # do something (save model, change lr, etc.)
         if max_score < valid_logs['iou_score']:
             max_score = valid_logs['iou_score']
-    
-    writer.flush()
