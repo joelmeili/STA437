@@ -28,7 +28,6 @@ EnsureTyped,
 EnsureType,
 ) 
 
-# set transforms
 writer = SummaryWriter()
 
 def custom_collate(batch):
