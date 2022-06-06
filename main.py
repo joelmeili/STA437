@@ -37,7 +37,6 @@ def create_data_splits(train_split, tets_split):
     # get path to all volumes
     images = sorted(glob("images/*_ct.nii.gz"))
 
-    random.seed(2020)
     train_images = random.sample(images, int(train_split * len(images)))
     val_images = list(set(images) - set(train_images))
     test_images = random.sample(val_images, int(test_split * len(images)))
@@ -53,65 +52,13 @@ def create_data_splits(train_split, tets_split):
 
     return train_files, val_files, test_files
 
-def train_model(model, learning_rate):
-        writer = SummaryWriter(log_dir = "runs/" + str(learning_rate))
-
-        loss = smp.utils.losses.DiceLoss()
-
-        metrics = [
-        smp.utils.metrics.IoU(threshold = 0.5)
-        ]
-
-        optimizer = torch.optim.Adam([
-            dict(params = model.parameters(), lr = learning_rate)])
-        
-        train_epoch = smp.utils.train.TrainEpoch(
-        model,
-        loss = loss,
-        metrics = metrics,
-        optimizer = optimizer,
-        device = "cuda",
-        verbose = True)
-
-        valid_epoch = smp.utils.train.ValidEpoch(
-            model,
-            loss = loss,
-            metrics = metrics,
-            device = "cuda",
-            verbose = True)
-
-        # train model for 40 epochs
-        max_score = 0
-
-
-        for i in range(0, 20):
-
-            print("\nEpoch: {}".format(i))
-            train_logs = train_epoch.run(train_loader)
-            valid_logs = valid_epoch.run(val_loader)
-
-            writer.add_scalar("Loss/Train", train_logs["dice_loss"], i)
-            writer.add_scalar("Loss/Valid", valid_logs["dice_loss"], i)
-
-            writer.add_scalar("Score/Train", train_logs["iou_score"], i)
-            writer.add_scalar("Score/Valid", valid_logs["iou_score"], i)
-            
-            # do something (save model, change lr, etc.)
-            if max_score < valid_logs["iou_score"]:
-                max_score = valid_logs["iou_score"]
-                torch.save(model, "model_" + str(learning_rate) + ".pth")
-                print("Model saved!")
-
-        writer.flush()
-
 if __name__ == "__main__":    
     # HYPERPARAMETERS
-    train_split = 0.7
-    test_split = 0.1
-    batch_size = 2
-    learning_rates = [1e-4, 1e-5, 1e-3]
-
-    train_files, val_files, test_files = create_data_splits(train_split, test_split)
+    train_splits = [0.5, 0.7, 0.9]
+    test_splits = [0.2, 0.1, 0.05]
+    batch_sizes = [2, 4, 8]
+    learning_rates = [1e-3, 1e-4, 1e-5]
+    optimizers = ["adam", "SGD"]
     
     # define transforms for image and segmentation
     train_transforms = Compose([
@@ -140,32 +87,95 @@ if __name__ == "__main__":
         RandCropByPosNegLabeld(
         keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 3, neg = 1, num_samples = 8
     )])
-    
-    # create a training data loader
-    train_ds = monai.data.Dataset(data = train_files, transform = train_transforms)
-    # use batch_size=2 to load images and use RandCropByPosNegLabeld to generate 2 x 4 images for network training
-    train_loader = DataLoader(
-    train_ds,
-    batch_size = batch_size,
-    shuffle = True,
-    num_workers = 8,
-    collate_fn = custom_collate,
-    pin_memory = torch.cuda.is_available())
-    
-    # create a validation data loader
-    val_ds = monai.data.Dataset(data = val_files, transform = val_transforms)
-    val_loader = DataLoader(val_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
 
-    # create a test data loader
-    test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
-    test_loader = DataLoader(test_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
+    for i in range(len(train_splits)):
+        train_split = train_splits[i]
+        test_split = test_splits[i]
 
-    for lr in learning_rates:
+        train_files, val_files, test_files = create_data_splits(train_split, test_split)
+        
+        # create a training data loader
+        train_ds = monai.data.Dataset(data = train_files, transform = train_transforms)
+        # use batch_size=2 to load images and use RandCropByPosNegLabeld to generate 2 x 4 images for network training
+        train_loader = DataLoader(
+        train_ds,
+        batch_size = batch_size,
+        shuffle = True,
+        num_workers = 8,
+        collate_fn = custom_collate,
+        pin_memory = torch.cuda.is_available())
+        
+        # create a validation data loader
+        val_ds = monai.data.Dataset(data = val_files, transform = val_transforms)
+        val_loader = DataLoader(val_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
 
-        model = smp.FPN(encoder_name = "resnet34",
-                    classes = 1,
-                    encoder_weights = "imagenet",
-                    in_channels = 1,
-                    activation = "sigmoid")
+        # create a test data loader
+        test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
+        test_loader = DataLoader(test_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
 
-        train_model(model = model, learning_rate = lr)
+
+        for batch_size in batch_sizes:
+            
+            for opt in optimizers:
+
+                for lr in learning_rates:
+
+                    model = smp.FPN(encoder_name = "resnet34",
+                                classes = 1,
+                                encoder_weights = "imagenet",
+                                in_channels = 1,
+                                activation = "sigmoid")
+
+                    writer = SummaryWriter(log_dir = "runs/" + "batch=" + str(batch_size) + "_lr=" + str(lr))
+
+                    loss = smp.utils.losses.DiceLoss()
+
+                    metrics = [
+                    smp.utils.metrics.IoU(threshold = 0.5)
+                    ]
+
+                    if opt == "adam":
+                        optimizer = torch.optim.Adam([
+                            dict(params = model.parameters(), lr = lr)])
+
+                    elif opt == "SGD":
+                        optimizer = torch.optim.SGD([
+                            dict(params = model.parameters(), lr = lr, momentum = 0.9)])
+                    
+                    train_epoch = smp.utils.train.TrainEpoch(
+                        model,
+                        loss = loss,
+                        metrics = metrics,
+                        optimizer = optimizer,
+                        device = "cuda",
+                        verbose = True)
+
+                    valid_epoch = smp.utils.train.ValidEpoch(
+                        model,
+                        loss = loss,
+                        metrics = metrics,
+                        device = "cuda",
+                        verbose = True)
+
+                    # train model for 40 epochs
+                    max_score = 0
+
+                    for i in range(0, 20):
+
+                        print("\nEpoch: {}".format(i))
+                        train_logs = train_epoch.run(train_loader)
+                        valid_logs = valid_epoch.run(val_loader)
+
+                        writer.add_scalar("Loss/Train", train_logs["dice_loss"], i)
+                        writer.add_scalar("Loss/Valid", valid_logs["dice_loss"], i)
+
+                        writer.add_scalar("Score/Train", train_logs["iou_score"], i)
+                        writer.add_scalar("Score/Valid", valid_logs["iou_score"], i)
+                        
+                        # do something (save model, change lr, etc.)
+                        if max_score < valid_logs["iou_score"]:
+                            max_score = valid_logs["iou_score"]
+                            torch.save(model, "model_batch=" + str(batch_size) + "opt=" + opt + "_lr=" + str(lr) + ".pth")
+                            print("Model saved!")
+
+                    writer.flush()
