@@ -39,8 +39,11 @@ def custom_collate(batch):
 if __name__ == "__main__":
     images = sorted(glob("images/*_ct.nii.gz"))
     
+    # HYPERPARAMETERS
     train_split = 0.7
     test_split = 0.1
+    bach_size = 4
+    
 
     random.seed(2020)
     train_images = random.sample(images, int(train_split * len(images)))
