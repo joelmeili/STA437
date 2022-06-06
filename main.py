@@ -53,7 +53,7 @@ def create_data_splits(train_split, tets_split):
 
     return train_files, val_files, test_files
 
-def train_model(model):
+def train_model(model, learning_rate):
         writer = SummaryWriter(log_dir = "runs/test")
 
         loss = smp.utils.losses.DiceLoss()
@@ -63,7 +63,7 @@ def train_model(model):
         ]
 
         optimizer = torch.optim.Adam([
-            dict(params = model.parameters(), lr = 1e-4)])
+            dict(params = model.parameters(), lr = learning_rate)])
         
         train_epoch = smp.utils.train.TrainEpoch(
         model,
@@ -107,6 +107,7 @@ if __name__ == "__main__":
     train_split = 0.7
     test_split = 0.1
     batch_size = 2
+    lr = 1e-4
 
     train_files, val_files, test_files = create_data_splits(train_split, test_split)
     
@@ -159,7 +160,7 @@ if __name__ == "__main__":
                 in_channels = 1,
                 activation = "sigmoid")
 
-    train_model(model = model)
+    train_model(model = model, learning_rate = lr)
 
     # create a test data loader
     test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
