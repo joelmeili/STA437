@@ -106,9 +106,9 @@ def train_model(model, learning_rate):
 
 if __name__ == "__main__":    
     # HYPERPARAMETERS
-    train_split = [0.7, 0.5, 0.9]
-    test_split = [0.1, 0.2, 0.05]
-    batch_size = [2, 8, 16]
+    train_split = 0.7
+    test_split = 0.1
+    batch_size = 2
     learning_rates = [1e-4, 1e-5, 1e-3]
 
     train_files, val_files, test_files = create_data_splits(train_split, test_split)
