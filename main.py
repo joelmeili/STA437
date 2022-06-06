@@ -43,7 +43,6 @@ if __name__ == "__main__":
     train_split = 0.7
     test_split = 0.1
     bach_size = 4
-    
 
     random.seed(2020)
     train_images = random.sample(images, int(train_split * len(images)))
