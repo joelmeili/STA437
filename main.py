@@ -98,6 +98,7 @@ if __name__ == "__main__":
             
             # create a training data loader
             train_ds = monai.data.Dataset(data = train_files, transform = train_transforms)
+
             # use batch_size=2 to load images and use RandCropByPosNegLabeld to generate 2 x 4 images for network training
             train_loader = DataLoader(
             train_ds,
@@ -174,7 +175,7 @@ if __name__ == "__main__":
                         # do something (save model, change lr, etc.)
                         if max_score < valid_logs["iou_score"]:
                             max_score = valid_logs["iou_score"]
-                            torch.save(model, "model_batch=" + str(batch_size) + "opt=" + opt + "_lr=" + str(lr) + ".pth")
+                            torch.save(model, "model_batch=" + str(batch_size) + "train=" + str(train_split) + "test=" + str(test_split) + "opt=" + opt + "_lr=" + str(lr) + ".pth")
                             print("Model saved!")
 
                     writer.flush()
