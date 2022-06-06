@@ -88,33 +88,32 @@ if __name__ == "__main__":
         keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 3, neg = 1, num_samples = 8
     )])
 
-    for i in range(len(train_splits)):
-        train_split = train_splits[i]
-        test_split = test_splits[i]
+    for batch_size in batch_sizes:
 
-        train_files, val_files, test_files = create_data_splits(train_split, test_split)
-        
-        # create a training data loader
-        train_ds = monai.data.Dataset(data = train_files, transform = train_transforms)
-        # use batch_size=2 to load images and use RandCropByPosNegLabeld to generate 2 x 4 images for network training
-        train_loader = DataLoader(
-        train_ds,
-        batch_size = batch_size,
-        shuffle = True,
-        num_workers = 8,
-        collate_fn = custom_collate,
-        pin_memory = torch.cuda.is_available())
-        
-        # create a validation data loader
-        val_ds = monai.data.Dataset(data = val_files, transform = val_transforms)
-        val_loader = DataLoader(val_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
+        for i in range(len(train_splits)):
+            train_split = train_splits[i]
+            test_split = test_splits[i]
 
-        # create a test data loader
-        test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
-        test_loader = DataLoader(test_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
+            train_files, val_files, test_files = create_data_splits(train_split, test_split)
+            
+            # create a training data loader
+            train_ds = monai.data.Dataset(data = train_files, transform = train_transforms)
+            # use batch_size=2 to load images and use RandCropByPosNegLabeld to generate 2 x 4 images for network training
+            train_loader = DataLoader(
+            train_ds,
+            batch_size = batch_size,
+            shuffle = True,
+            num_workers = 8,
+            collate_fn = custom_collate,
+            pin_memory = torch.cuda.is_available())
+            
+            # create a validation data loader
+            val_ds = monai.data.Dataset(data = val_files, transform = val_transforms)
+            val_loader = DataLoader(val_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
 
-
-        for batch_size in batch_sizes:
+            # create a test data loader
+            test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
+            test_loader = DataLoader(test_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
             
             for opt in optimizers:
 
