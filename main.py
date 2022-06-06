@@ -126,7 +126,8 @@ if __name__ == "__main__":
                                     in_channels = 1,
                                     activation = "sigmoid")
 
-                        writer = SummaryWriter(log_dir = "runs/" + "batch=" + str(batch_size) + "_lr=" + str(lr))
+                        writer = SummaryWriter(log_dir = "runs/" + "batch=" + str(batch_size) + "_train=" + str(train_split) + 
+                        "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr))
 
                         loss = smp.utils.losses.DiceLoss()
 
