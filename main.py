@@ -72,9 +72,9 @@ if __name__ == "__main__":
     
     val_transforms = Compose(
     [
-    LoadImaged(keys=["img", "seg"]),
-    AddChanneld(keys=["img", "seg"]),
-    ScaleIntensityd(keys=["img", "seg"]),
+    LoadImaged(keys = ["img", "seg"]),
+    AddChanneld(keys = ["img", "seg"]),
+    ScaleIntensityd(keys = ["img", "seg"]),
     RandCropByPosNegLabeld(
     keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 2, neg = 1, num_samples = 8
     )])
