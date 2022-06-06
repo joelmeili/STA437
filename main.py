@@ -85,7 +85,11 @@ if __name__ == "__main__":
     AddChanneld(keys = ["img", "seg"]),
     ScaleIntensityd(keys = ["img", "seg"]),
     RandCropByPosNegLabeld(
+<<<<<<< HEAD
     keys=["img", "seg"], label_key = "seg", spatial_size=[512, 512, 1], pos = 1, neg = 1, num_samples = 8
+=======
+    keys=["img", "seg"], label_key="seg", spatial_size=[512, 512, 1], pos=2, neg=1, num_samples=8
+>>>>>>> ec98fe43fb0a69a913ad65ce4e57c02e1c4acc73
     ),
     #RandRotate90d(keys=["img", "seg"], prob=0.5, spatial_axes=[0, 1]),
     #EnsureTyped(keys=["img", "seg"]),
@@ -98,7 +102,11 @@ if __name__ == "__main__":
     AddChanneld(keys=["img", "seg"]),
     ScaleIntensityd(keys=["img", "seg"]),
     RandCropByPosNegLabeld(
+<<<<<<< HEAD
     keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 1, neg = 1, num_samples = 8
+=======
+    keys=["img", "seg"], label_key="seg", spatial_size=[512, 512, 1], pos=2, neg=1, num_samples=8
+>>>>>>> ec98fe43fb0a69a913ad65ce4e57c02e1c4acc73
     )])
     
     # create a training data loader
@@ -131,6 +139,7 @@ if __name__ == "__main__":
     ]
 
     optimizer = torch.optim.Adam([
+<<<<<<< HEAD
         dict(params=model.parameters(), lr = 1e-3)])
 
     train_epoch = smp.utils.train.TrainEpoch(
@@ -147,6 +156,24 @@ if __name__ == "__main__":
         metrics = metrics,
         device = "cuda",
         verbose = True)
+=======
+        dict(params=model.parameters(), lr=1e-4)])
+
+    train_epoch = smp.utils.train.TrainEpoch(
+        model,
+        loss=loss,
+        metrics=metrics,
+        optimizer=optimizer,
+        device="cuda",
+        verbose=True)
+
+    valid_epoch = smp.utils.train.ValidEpoch(
+        model,
+        loss=loss,
+        metrics=metrics,
+        device="cuda",
+        verbose=True)
+>>>>>>> ec98fe43fb0a69a913ad65ce4e57c02e1c4acc73
 
     # train model for 40 epochs
     max_score = 0
@@ -158,5 +185,10 @@ if __name__ == "__main__":
         valid_logs = valid_epoch.run(val_loader)
         
         # do something (save model, change lr, etc.)
+<<<<<<< HEAD
         if max_score < valid_logs["iou_score"]:
             max_score = valid_logs["iou_score"]
+=======
+        if max_score < valid_logs['iou_score']:
+            max_score = valid_logs['iou_score']
+>>>>>>> ec98fe43fb0a69a913ad65ce4e57c02e1c4acc73
