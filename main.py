@@ -63,7 +63,7 @@ def train_model(model):
         ]
 
         optimizer = torch.optim.Adam([
-            dict(params = model.parameters(), lr = 1e-3)])
+            dict(params = model.parameters(), lr = 1e-4)])
         
         train_epoch = smp.utils.train.TrainEpoch(
         model,
