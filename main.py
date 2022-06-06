@@ -86,7 +86,7 @@ if __name__ == "__main__":
     # use batch_size=2 to load images and use RandCropByPosNegLabeld to generate 2 x 4 images for network training
     train_loader = DataLoader(
     train_ds,
-    batch_size = 4,
+    batch_size = batch_size,
     shuffle = True,
     num_workers = 4,
     collate_fn = custom_collate,
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     
     # create a validation data loader
     val_ds = monai.data.Dataset(data = val_files, transform = val_transforms)
-    val_loader = DataLoader(val_ds, batch_size = 4, num_workers = 4, collate_fn = custom_collate) 
+    val_loader = DataLoader(val_ds, batch_size = batch_size, num_workers = 4, collate_fn = custom_collate) 
     
     model = smp.FPN(encoder_name = "resnet34",
                     classes = 1,
