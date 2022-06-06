@@ -209,14 +209,14 @@ if __name__ == "__main__":
         loss=loss,
         metrics=metrics,
         optimizer=optimizer,
-        #device="cuda",
+        device="cuda",
         verbose=True)
 
     valid_epoch = smp.utils.train.ValidEpoch(
         model,
         loss=loss,
         metrics=metrics,
-        #device="cuda",
+        device="cuda",
         verbose=True)
 
     # train model for 40 epochs
