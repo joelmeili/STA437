@@ -112,22 +112,30 @@ if __name__ == "__main__":
     
     # define transforms for image and segmentation
     train_transforms = Compose([
-    LoadImaged(keys = ["img", "seg"]),
-    AddChanneld(keys = ["img", "seg"]),
-    ScaleIntensityd(keys = ["img", "seg"]),
-    RandCropByPosNegLabeld(
-    keys=["img", "seg"], label_key = "seg", spatial_size=[512, 512, 1], pos = 3, neg = 1, num_samples = 8
-    ),
-    #RandRotate90d(keys=["img", "seg"], prob=0.5, spatial_axes=[0, 1]),
-    #EnsureTyped(keys=["img", "seg"]),
+        LoadImaged(keys = ["img", "seg"]),
+        AddChanneld(keys = ["img", "seg"]),
+        ScaleIntensityd(keys = ["img", "seg"]),
+        RandCropByPosNegLabeld(
+        keys=["img", "seg"], label_key = "seg", spatial_size=[512, 512, 1], pos = 3, neg = 1, num_samples = 8
+        ),
+        #RandRotate90d(keys=["img", "seg"], prob=0.5, spatial_axes=[0, 1]),
+        #EnsureTyped(keys=["img", "seg"]),
     ])
     
     val_transforms = Compose([
-    LoadImaged(keys = ["img", "seg"]),
-    AddChanneld(keys = ["img", "seg"]),
-    ScaleIntensityd(keys = ["img", "seg"]),
-    RandCropByPosNegLabeld(
-    keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 3, neg = 1, num_samples = 8
+        LoadImaged(keys = ["img", "seg"]),
+        AddChanneld(keys = ["img", "seg"]),
+        ScaleIntensityd(keys = ["img", "seg"]),
+        RandCropByPosNegLabeld(
+        keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 3, neg = 1, num_samples = 8
+    )])
+
+    test_transforms = Compose([
+        LoadImaged(keys = ["img", "seg"]),
+        AddChanneld(keys = ["img", "seg"]),
+        ScaleIntensityd(keys = ["img", "seg"]),
+        RandCropByPosNegLabeld(
+        keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 3, neg = 1, num_samples = 8
     )])
     
     # create a training data loader
@@ -152,3 +160,9 @@ if __name__ == "__main__":
                 activation = "sigmoid")
 
     train_model(model = model)
+
+    # create a test data loader
+    test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
+    test_loader = DataLoader(test_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
+
+    print(model.predict(test_loader))
