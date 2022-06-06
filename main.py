@@ -116,7 +116,7 @@ if __name__ == "__main__":
     AddChanneld(keys = ["img", "seg"]),
     ScaleIntensityd(keys = ["img", "seg"]),
     RandCropByPosNegLabeld(
-    keys=["img", "seg"], label_key = "seg", spatial_size=[512, 512, 1], pos = 2, neg = 1, num_samples = 8
+    keys=["img", "seg"], label_key = "seg", spatial_size=[512, 512, 1], pos = 3, neg = 1, num_samples = 8
     ),
     #RandRotate90d(keys=["img", "seg"], prob=0.5, spatial_axes=[0, 1]),
     #EnsureTyped(keys=["img", "seg"]),
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     AddChanneld(keys = ["img", "seg"]),
     ScaleIntensityd(keys = ["img", "seg"]),
     RandCropByPosNegLabeld(
-    keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 2, neg = 1, num_samples = 8
+    keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 3, neg = 1, num_samples = 8
     )])
     
     # create a training data loader
