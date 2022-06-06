@@ -54,7 +54,7 @@ def create_data_splits(train_split, tets_split):
     return train_files, val_files, test_files
 
 def train_model(model, learning_rate):
-        writer = SummaryWriter(log_dir = "runs/test")
+        writer = SummaryWriter(log_dir = "runs/" + str(learning_rate))
 
         loss = smp.utils.losses.DiceLoss()
 
@@ -99,15 +99,17 @@ def train_model(model, learning_rate):
             # do something (save model, change lr, etc.)
             if max_score < valid_logs["iou_score"]:
                 max_score = valid_logs["iou_score"]
+                torch.save(model, "model_" + str(learning_rate) + ".pth")
+                print("Model saved!")
 
         writer.flush()
 
 if __name__ == "__main__":    
     # HYPERPARAMETERS
-    train_split = 0.7
-    test_split = 0.1
-    batch_size = 2
-    lr = 1e-4
+    train_split = [0.7, 0.5, 0.9]
+    test_split = [0.1, 0.2, 0.05]
+    batch_size = [2, 8, 16]
+    learning_rates = [1e-4, 1e-5, 1e-3]
 
     train_files, val_files, test_files = create_data_splits(train_split, test_split)
     
@@ -117,7 +119,7 @@ if __name__ == "__main__":
         AddChanneld(keys = ["img", "seg"]),
         ScaleIntensityd(keys = ["img", "seg"]),
         RandCropByPosNegLabeld(
-        keys=["img", "seg"], label_key = "seg", spatial_size=[512, 512, 1], pos = 3, neg = 1, num_samples = 8
+        keys=["img", "seg"], label_key = "seg", spatial_size=[512, 512, 1], pos = 2, neg = 1, num_samples = 8
         ),
         #RandRotate90d(keys=["img", "seg"], prob=0.5, spatial_axes=[0, 1]),
         #EnsureTyped(keys=["img", "seg"]),
@@ -128,7 +130,7 @@ if __name__ == "__main__":
         AddChanneld(keys = ["img", "seg"]),
         ScaleIntensityd(keys = ["img", "seg"]),
         RandCropByPosNegLabeld(
-        keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 3, neg = 1, num_samples = 8
+        keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 2, neg = 1, num_samples = 8
     )])
 
     test_transforms = Compose([
@@ -154,16 +156,16 @@ if __name__ == "__main__":
     val_ds = monai.data.Dataset(data = val_files, transform = val_transforms)
     val_loader = DataLoader(val_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
 
-    model = smp.FPN(encoder_name = "resnet34",
-                classes = 1,
-                encoder_weights = "imagenet",
-                in_channels = 1,
-                activation = "sigmoid")
-
-    train_model(model = model, learning_rate = lr)
-
     # create a test data loader
     test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
     test_loader = DataLoader(test_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
 
-    print(model.predict(test_loader))
+    for lr in learning_rates:
+
+        model = smp.FPN(encoder_name = "resnet34",
+                    classes = 1,
+                    encoder_weights = "imagenet",
+                    in_channels = 1,
+                    activation = "sigmoid")
+
+        train_model(model = model, learning_rate = lr)
