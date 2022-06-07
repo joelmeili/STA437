@@ -210,7 +210,7 @@ if __name__ == "__main__":
                     max_values = np.argsort(score)[-5:]
                     max_values = [score[i] for i in range(len(score)) if i in max_values]
 
-                    min_values = np.argsort(score)[5:]
+                    min_values = -(np.argsort(score))[-5:]
                     min_values = [score[i] for i in range(len(score)) if i in min_values]
 
                     print(max_values, min_values)
