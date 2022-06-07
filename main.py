@@ -134,7 +134,7 @@ if __name__ == "__main__":
                                 classes = 1,
                                 in_channels = 1,
                                 activation = "sigmoid",
-                                dropout = None)
+                                aux_params = dict(dropout = None))
 
                     writer = SummaryWriter(log_dir = "runs/" + "batch=" + str(batch_size) + "_train=" + str(train_split) + 
                     "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr))
