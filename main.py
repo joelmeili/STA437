@@ -124,7 +124,7 @@ if __name__ == "__main__":
             for opt in optimizers:
 
                 for lr in learning_rates:
-
+                    
                     model = smp.FPN(encoder_name = "resnet34",
                                 classes = 1,
                                 encoder_weights = "imagenet",
@@ -166,7 +166,7 @@ if __name__ == "__main__":
 
                     # train model for 40 epochs
                     max_score = 0
-
+                    """
                     for i in range(0, 20):
 
                         print("\nEpoch: {}".format(i))
@@ -190,7 +190,7 @@ if __name__ == "__main__":
                     # inference
                     model = torch.load("models/batch=" + str(batch_size) + "_train=" + str(train_split) + 
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
-
-                    for image, mask in next(iter(test_loader)):
-                        pr_mask = model.predict(image)
-                        print(pr_mask, pr_mask.shape)
+                    
+                    """
+                    for image, mask in test_loader:
+                        print(image.shape, mask.shape)
