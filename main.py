@@ -59,13 +59,11 @@ if __name__ == "__main__":
     batch_sizes = [2, 4]
     learning_rates = [1e-4, 1e-5]
     optimizers = ["adam", "SGD"]
-    dropout = [0.2, 0.5]
-    architecture = ["resnet34", "resnet50"]
+    dropouts = [0.2, 0.5]
+    architectures = ["resnet34", "resnet50"]
 
-    train_splits = [0.7]
-    batch_sizes = [2]
-    learning_rates = [1e-4]
-    optimizers = ["adam"]
+    best_model = ""
+    best_score = 0.0
     
     # define transforms for image and segmentation
     train_transforms = Compose([
@@ -125,74 +123,81 @@ if __name__ == "__main__":
 
                 for lr in learning_rates:
                     
-                    model = smp.FPN(encoder_name = "resnet34",
-                                classes = 1,
-                                encoder_weights = "imagenet",
-                                in_channels = 1,
-                                activation = "sigmoid",
-                                decoder_dropout = 0.2)
+                    for architecure in architectures:
 
-                    writer = SummaryWriter(log_dir = "runs/" + "batch=" + str(batch_size) + "_train=" + str(train_split) + 
-                    "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr))
-
-                    loss = smp.utils.losses.DiceLoss()
-
-                    metrics = [
-                    smp.utils.metrics.IoU(threshold = 0.5)
-                    ]
-
-                    if opt == "adam":
-                        optimizer = torch.optim.Adam([
-                            dict(params = model.parameters(), lr = lr)])
-
-                    elif opt == "SGD":
-                        optimizer = torch.optim.SGD([
-                            dict(params = model.parameters(), lr = lr, momentum = 0.9)])
+                        for dropout in dropouts:
                     
-                    train_epoch = smp.utils.train.TrainEpoch(
-                        model,
-                        loss = loss,
-                        metrics = metrics,
-                        optimizer = optimizer,
-                        device = "cuda",
-                        verbose = True)
+                            model = smp.FPN(encoder_name = architecture,
+                                        classes = 1,
+                                        encoder_weights = "imagenet",
+                                        in_channels = 1,
+                                        activation = "sigmoid",
+                                        decoder_dropout = dropout)
 
-                    valid_epoch = smp.utils.train.ValidEpoch(
-                        model,
-                        loss = loss,
-                        metrics = metrics,
-                        device = "cuda",
-                        verbose = True)
+                            writer = SummaryWriter(log_dir = "runs/" + "architecture=" + architecture + "_batch=" + str(batch_size) + "_train=" + str(train_split) + 
+                            "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + "_dropout=" + str(dropout))
 
-                    # train model for 40 epochs
-                    max_score = 0
-                    
+                            loss = smp.utils.losses.DiceLoss()
+
+                            metrics = [
+                            smp.utils.metrics.IoU(threshold = 0.5)
+                            ]
+
+                            if opt == "adam":
+                                optimizer = torch.optim.Adam([
+                                    dict(params = model.parameters(), lr = lr)])
+
+                            elif opt == "SGD":
+                                optimizer = torch.optim.SGD([
+                                    dict(params = model.parameters(), lr = lr, momentum = 0.9)])
+                            
+                            train_epoch = smp.utils.train.TrainEpoch(
+                                model,
+                                loss = loss,
+                                metrics = metrics,
+                                optimizer = optimizer,
+                                device = "cuda",
+                                verbose = True)
+
+                            valid_epoch = smp.utils.train.ValidEpoch(
+                                model,
+                                loss = loss,
+                                metrics = metrics,
+                                device = "cuda",
+                                verbose = True)
+
+                            # train model for 40 epochs
+                            max_score = 0
+                            
+                            for i in range(0, 20):
+
+                                print("\nEpoch: {}".format(i))
+                                train_logs = train_epoch.run(train_loader)
+                                valid_logs = valid_epoch.run(val_loader)
+
+                                writer.add_scalar("Loss/Train", train_logs["dice_loss"], i)
+                                writer.add_scalar("Loss/Valid", valid_logs["dice_loss"], i)
+
+                                writer.add_scalar("Score/Train", train_logs["iou_score"], i)
+                                writer.add_scalar("Score/Valid", valid_logs["iou_score"], i)
+                                
+                                # do something (save model, change lr, etc.)
+                                if max_score < valid_logs["iou_score"]:
+                                    max_score = valid_logs["iou_score"]
+                                    torch.save(model, "models/" + "architecture=" + architecture + "_batch=" + str(batch_size) + "_train=" + str(train_split) + 
+                            "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + "_dropout=" + str(dropout) + ".pth")
+
+                                if max_score > best_score:
+                                    torch.save(model, "models/best_model.pth")
+                                    torch.save(test_loader, "test_loader_for_inference.pth")
+
+                            writer.flush()
+
                     """
-                    for i in range(0, 20):
-
-                        print("\nEpoch: {}".format(i))
-                        train_logs = train_epoch.run(train_loader)
-                        valid_logs = valid_epoch.run(val_loader)
-
-                        writer.add_scalar("Loss/Train", train_logs["dice_loss"], i)
-                        writer.add_scalar("Loss/Valid", valid_logs["dice_loss"], i)
-
-                        writer.add_scalar("Score/Train", train_logs["iou_score"], i)
-                        writer.add_scalar("Score/Valid", valid_logs["iou_score"], i)
-                        
-                        # do something (save model, change lr, etc.)
-                        if max_score < valid_logs["iou_score"]:
-                            max_score = valid_logs["iou_score"]
-                            torch.save(model, "models/batch=" + str(batch_size) + "_train=" + str(train_split) + 
-                            "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
-
-                    writer.flush()
-
                     # inference
                     model = torch.load("models/batch=" + str(batch_size) + "_train=" + str(train_split) + 
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
-                    """
-
+                    
                     model = torch.load('batch=2_train=0.7_test=0.1_opt=adam_lr=0.0001.pth')
 
                     score = []
@@ -214,6 +219,7 @@ if __name__ == "__main__":
                     min_values = [score[i] for i in range(len(score)) if i in min_values]
 
                     print(max_values, min_values)
+                    """
 
                             
                             
