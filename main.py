@@ -199,8 +199,6 @@ if __name__ == "__main__":
                         for i in range(len(image)):
                             target = mask[i, :, :, :]
                             input = image[i, :, :, :].cuda()
-                            print(input.shape)
-                            tp, fp, fn, tn = smp.metrics.get_stats(model(input), target, mode = "binary", threshold = 0.5)
-                            iou_score = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
+                            iou_score = smp.utils.metrics.IoU(model(input), target)
 
                             print(iou_score)
