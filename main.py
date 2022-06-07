@@ -58,6 +58,7 @@ if __name__ == "__main__":
     batch_sizes = [2, 4, 8]
     learning_rates = [1e-3, 1e-4, 1e-5]
     optimizers = ["adam", "SGD"]
+    dropout = [None, 0.5]
 
     train_splits = [0.7]
     batch_sizes = [2]
@@ -186,4 +187,6 @@ if __name__ == "__main__":
                     # inference
                     model = torch.load("batch=" + str(batch_size) + "_train=" + str(train_split) + 
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
-                    pred = model.predict(test_loader)
+                    pred = model(test_loader)
+
+                    print(pred)
