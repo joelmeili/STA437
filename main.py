@@ -199,7 +199,7 @@ if __name__ == "__main__":
                         for i in range(len(image)):
                             target = mask[i, :, :, :]
                             input = image[i, :, :, :].cuda()
-                            input = torch([1, input])
+                            input = torch.tensor([1, input])
                             print(input.shape)
                             #iou_score = smp.utils.metrics.IoU(model(input), target)
 
