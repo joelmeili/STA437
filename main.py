@@ -199,4 +199,4 @@ if __name__ == "__main__":
                     for image, mask in test_loader:
                         pred = model(image.cuda())
 
-                        print(pred, pred.shape)
+                        print(pred.max(), pred.shape)
