@@ -134,8 +134,11 @@ if __name__ == "__main__":
                                 encoder_weights = "imagenet",
                                 in_channels = 1,
                                 activation = "sigmoid",
-                                aux_params = dict(dropout = None,
-                                classes = ["lesion"]))
+                                aux_params = dict(
+                                    pooling = "avg",
+                                    dropout = None,
+                                    activation = "sigmoid",
+                                    classes = 1))
 
                     writer = SummaryWriter(log_dir = "runs/" + "batch=" + str(batch_size) + "_train=" + str(train_split) + 
                     "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr))
