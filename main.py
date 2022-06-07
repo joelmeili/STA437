@@ -202,4 +202,6 @@ if __name__ == "__main__":
                             target = mask[i, :, :, :]
                             pr_mask = pred[i, :, :, :]
                             
-                            print(target.shape, pr_mask.shape)
+                            test = smp.utils.IoU.forward(pr_mask, target)
+
+                            print(test)
