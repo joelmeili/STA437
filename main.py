@@ -197,4 +197,10 @@ if __name__ == "__main__":
                     model = torch.load('batch=2_train=0.7_test=0.1_opt=adam_lr=0.0001.pth')
 
                     for image, mask in test_loader:
-                        print(len(image))
+                        for i in range(len(image)):
+                            target = mask[i, :, :, :]
+                            pred = model(image[i, :, :, :])
+                            tp, fp, fn, tn = smp.metrics.get_stats(pred, target, threshold = 0.5)
+                            iou_score = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
+                            
+                            print(iou_score)
