@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
                 for lr in learning_rates:
                     
-                    for architecure in architectures:
+                    for architecture in architectures:
 
                         for dropout in dropouts:
                     
