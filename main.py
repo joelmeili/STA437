@@ -95,9 +95,6 @@ if __name__ == "__main__":
         keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 3, neg = 1, num_samples = 8
     )])
 
-    # select best overall model
-    ##### best score = 0.0
-
     for batch_size in batch_sizes:
 
         for train_split in train_splits:
@@ -194,5 +191,6 @@ if __name__ == "__main__":
                     model = torch.load("models/batch=" + str(batch_size) + "_train=" + str(train_split) + 
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
 
-                    for image, mask in test_loader:
-                        print(image, mask)
+                    for image, mask in next(iter(test_loader)):
+                        pr_mask = model.predict(image)
+                        print(pr_mask, pr_mask.shape)
