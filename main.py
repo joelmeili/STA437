@@ -197,6 +197,4 @@ if __name__ == "__main__":
                     model = torch.load('batch=2_train=0.7_test=0.1_opt=adam_lr=0.0001.pth')
 
                     for image, mask in test_loader:
-                        pred = model(image.cuda())
-
-                        print(pred.max(), pred.shape)
+                        print(len(image))
