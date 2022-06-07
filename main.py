@@ -135,7 +135,7 @@ if __name__ == "__main__":
                                 in_channels = 1,
                                 activation = "sigmoid",
                                 aux_params = dict(dropout = None,
-                                classes = 1))
+                                classes = ["lesion"]))
 
                     writer = SummaryWriter(log_dir = "runs/" + "batch=" + str(batch_size) + "_train=" + str(train_split) + 
                     "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr))
