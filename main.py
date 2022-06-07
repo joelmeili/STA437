@@ -1,3 +1,4 @@
+from platform import architecture
 import re, random, torch, cv2
 import matplotlib.pyplot as plt
 import segmentation_models_pytorch as smp
@@ -55,10 +56,12 @@ if __name__ == "__main__":
     # HYPERPARAMETERS
     train_splits = [0.5, 0.7]
     test_split = 0.1
-    batch_sizes = [2, 4, 8]
-    learning_rates = [1e-3, 1e-4, 1e-5]
+    batch_sizes = [2, 4]
+    learning_rates = [1e-4, 1e-5]
     optimizers = ["adam", "SGD"]
     dropout = [None, 0.5]
+    architecture = ["resnet34", "resnet50"]
+    batch_norm = [True, False]
 
     train_splits = [0.7]
     batch_sizes = [2]
@@ -92,6 +95,9 @@ if __name__ == "__main__":
         RandCropByPosNegLabeld(
         keys=["img", "seg"], label_key = "seg", spatial_size = [512, 512, 1], pos = 3, neg = 1, num_samples = 8
     )])
+
+    # select best overall model
+    ##### best score = 0.0
 
     for batch_size in batch_sizes:
 
@@ -127,7 +133,9 @@ if __name__ == "__main__":
                                 classes = 1,
                                 encoder_weights = "imagenet",
                                 in_channels = 1,
-                                activation = "sigmoid")
+                                activation = "sigmoid",
+                                aux_params = dict(dropout = None,
+                                                classes = 1))
 
                     writer = SummaryWriter(log_dir = "runs/" + "batch=" + str(batch_size) + "_train=" + str(train_split) + 
                     "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr))
@@ -179,13 +187,13 @@ if __name__ == "__main__":
                         # do something (save model, change lr, etc.)
                         if max_score < valid_logs["iou_score"]:
                             max_score = valid_logs["iou_score"]
-                            torch.save(model, "batch=" + str(batch_size) + "_train=" + str(train_split) + 
+                            torch.save(model, "models/batch=" + str(batch_size) + "_train=" + str(train_split) + 
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
 
                     writer.flush()
 
                     # inference
-                    model = torch.load("batch=" + str(batch_size) + "_train=" + str(train_split) + 
+                    model = torch.load("models/batch=" + str(batch_size) + "_train=" + str(train_split) + 
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
                     pred = model(test_loader)
 
