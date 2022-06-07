@@ -191,7 +191,6 @@ if __name__ == "__main__":
                     # inference
                     model = torch.load("models/batch=" + str(batch_size) + "_train=" + str(train_split) + 
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
-                    
                     """
 
                     model = torch.load('batch=2_train=0.7_test=0.1_opt=adam_lr=0.0001.pth')
@@ -201,7 +200,7 @@ if __name__ == "__main__":
                             target = mask[i, :, :, :]
                             input = image[i, :, :, :].cuda()
                             print(input.shape)
-                            tp, fp, fn, tn = smp.metrics.get_stats(pred, target, threshold = 0.5)
+                            tp, fp, fn, tn = smp.metrics.get_stats(input, target, threshold = 0.5)
                             iou_score = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
 
                             print(iou_score)
