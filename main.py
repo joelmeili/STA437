@@ -167,6 +167,14 @@ if __name__ == "__main__":
                         device = "cuda",
                         verbose = True)
 
+                    test_epoch = smp.utils.train.ValidEpoch(
+                        model,
+                        loss = loss,
+                        metrics = metrics,
+                        device = "cuda",
+                        verbose = True
+                    )
+
                     # train model for 40 epochs
                     max_score = 0
 
@@ -193,6 +201,8 @@ if __name__ == "__main__":
                     # inference
                     model = torch.load("models/batch=" + str(batch_size) + "_train=" + str(train_split) + 
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
-                    pred = model(test_loader)
+                    
+                    
+                    pred = test_epoch.run(test_loader)
 
-                    print(pred, pred.shape)
+                    print(pred)
