@@ -204,7 +204,7 @@ if __name__ == "__main__":
                             target = mask[i, :, :, :]
                             pr_mask = pred[i, :, :, :]
                             
-                            temp_score = smp.utils.metrics.IoU().forward(pr_mask.cuda(), target.cuda())
+                            temp_score = smp.utils.metrics.IoU().forward(pr_mask, target.cuda())
                             score.append(temp_score)
 
                     print(score)
