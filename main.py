@@ -166,6 +166,7 @@ if __name__ == "__main__":
 
                     # train model for 40 epochs
                     max_score = 0
+                    
                     """
                     for i in range(0, 20):
 
@@ -192,5 +193,7 @@ if __name__ == "__main__":
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
                     
                     """
+                    model = torch.load('batch=2_train=0.7_test=0.1_opt=adam_lr=0.0001.pth')
+
                     for image, mask in test_loader:
-                        print(image.shape, mask.shape)
+                        pred = model(image)
