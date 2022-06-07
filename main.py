@@ -196,11 +196,12 @@ if __name__ == "__main__":
                     model = torch.load('batch=2_train=0.7_test=0.1_opt=adam_lr=0.0001.pth')
 
                     for image, mask in test_loader:
+                        pred = model(image.cuda())
+
                         for i in range(len(image)):
                             target = mask[i, :, :, :]
-                            input = image[i, :, :, :].cuda()
-                            input = torch.tensor([1, input])
-                            print(input.shape)
-                            #iou_score = smp.utils.metrics.IoU(model(input), target)
+                            pr_mask = pred[i, :, :, :]
 
-                            #print(iou_score)
+                            score = smp.utils.metrics.IoU(pr_mask, target)
+
+                            print(score)
