@@ -207,7 +207,7 @@ if __name__ == "__main__":
                             temp_score = smp.utils.metrics.IoU().forward(pr_mask, target.cuda())
                             score.append(temp_score)
 
-                    test = np.argsort(score)[-5:]
+                    test = np.argsort(score.cpu())[-5:]
                     max_values = [score[i] for i in range(len(score)) if i in test]
 
                     print(test, max_values)
