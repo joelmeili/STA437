@@ -59,9 +59,8 @@ if __name__ == "__main__":
     batch_sizes = [2, 4]
     learning_rates = [1e-4, 1e-5]
     optimizers = ["adam", "SGD"]
-    dropout = [None, 0.5]
+    dropout = [0.2, 0.5]
     architecture = ["resnet34", "resnet50"]
-    batch_norm = [True, False]
 
     train_splits = [0.7]
     batch_sizes = [2]
@@ -134,7 +133,7 @@ if __name__ == "__main__":
                                 encoder_weights = "imagenet",
                                 in_channels = 1,
                                 activation = "sigmoid",
-                                decoder_use_batchnorm = False)
+                                decoder_dropout = 0.2)
 
                     writer = SummaryWriter(log_dir = "runs/" + "batch=" + str(batch_size) + "_train=" + str(train_split) + 
                     "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr))
