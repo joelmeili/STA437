@@ -194,14 +194,5 @@ if __name__ == "__main__":
                     model = torch.load("models/batch=" + str(batch_size) + "_train=" + str(train_split) + 
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
 
-                    test_epoch = smp.utils.train.ValidEpoch(
-                        model,
-                        loss = loss,
-                        metrics = metrics,
-                        device = "cuda",
-                        verbose = True
-                    )
-                    
-                    pred = test_epoch.run(test_loader)
-
-                    print(pred)
+                    for image, mask in test_loader:
+                        print(image, mask)
