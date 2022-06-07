@@ -136,7 +136,7 @@ if __name__ == "__main__":
                                 activation = "sigmoid",
                                 aux_params = dict(
                                     pooling = "avg",
-                                    dropout = None,
+                                    dropout = 0.5,
                                     activation = "sigmoid",
                                     classes = 1))
 
