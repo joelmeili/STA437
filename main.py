@@ -202,6 +202,6 @@ if __name__ == "__main__":
                             target = mask[i, :, :, :]
                             pr_mask = pred[i, :, :, :]
                             
-                            test = smp.utils.metrics.IoU().forward(pr_mask, target)
+                            test = smp.utils.metrics.IoU().forward(pr_mask.cuda(), target.cuda())
 
                             print(test)
