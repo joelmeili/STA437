@@ -200,7 +200,7 @@ if __name__ == "__main__":
                             target = mask[i, :, :, :]
                             input = image[i, :, :, :].cuda()
                             print(input.shape)
-                            tp, fp, fn, tn = smp.metrics.get_stats(input, target, threshold = 0.5)
+                            tp, fp, fn, tn = smp.metrics.get_stats(input, target, mode = "binary", threshold = 0.5)
                             iou_score = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
 
                             print(iou_score)
