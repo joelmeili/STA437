@@ -129,7 +129,7 @@ if __name__ == "__main__":
 
                 for lr in learning_rates:
 
-                    model = smp.FPN(encoder_name = "resnet34",,
+                    model = smp.FPN(encoder_name = "resnet34",
                                 encoder_weights = "imagenet",
                                 in_channels = 1,
                                 activation = "sigmoid",
