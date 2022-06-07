@@ -201,7 +201,5 @@ if __name__ == "__main__":
                         for i in range(len(image)):
                             target = mask[i, :, :, :]
                             pr_mask = pred[i, :, :, :]
-
-                            score = smp.utils.metrics.IoU(pr_mask, target)
-
-                            print(score)
+                            
+                            print(target.shape, pr_mask.shape)
