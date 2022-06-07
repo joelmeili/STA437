@@ -193,7 +193,8 @@ if __name__ == "__main__":
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
                     
                     """
+
                     model = torch.load('batch=2_train=0.7_test=0.1_opt=adam_lr=0.0001.pth')
 
                     for image, mask in test_loader:
-                        pred = model(image)
+                        pred = model(image.cuda())
