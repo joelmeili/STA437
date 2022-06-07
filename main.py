@@ -189,4 +189,4 @@ if __name__ == "__main__":
                             "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
                     pred = model(test_loader)
 
-                    print(pred)
+                    print(pred, pred.shape)
