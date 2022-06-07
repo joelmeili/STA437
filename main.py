@@ -4,7 +4,6 @@ import segmentation_models_pytorch as smp
 import numpy as np
 
 from glob import glob
-from albumentations.pytorch import ToTensorV2 as ToTensor
 from cv2 import imread
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
@@ -54,11 +53,16 @@ def create_data_splits(train_split, tets_split):
 
 if __name__ == "__main__":    
     # HYPERPARAMETERS
-    train_splits = [0.5, 0.7, 0.9]
-    test_splits = [0.2, 0.1, 0.05]
+    train_splits = [0.5, 0.7]
+    test_split = 0.1
     batch_sizes = [2, 4, 8]
     learning_rates = [1e-3, 1e-4, 1e-5]
     optimizers = ["adam", "SGD"]
+
+    train_splits = [0.7]
+    batch_sizes = [2]
+    learning_rates = [1e-4]
+    optimizers = ["adam"]
     
     # define transforms for image and segmentation
     train_transforms = Compose([
@@ -91,90 +95,95 @@ if __name__ == "__main__":
     for batch_size in batch_sizes:
 
         for train_split in train_splits:
+
+            train_files, val_files, test_files = create_data_splits(train_split, test_split)
             
-            for test_split in test_splits:
+            # create a training data loader
+            train_ds = monai.data.Dataset(data = train_files, transform = train_transforms)
 
-                train_files, val_files, test_files = create_data_splits(train_split, test_split)
-                
-                # create a training data loader
-                train_ds = monai.data.Dataset(data = train_files, transform = train_transforms)
+            # use batch_size=2 to load images and use RandCropByPosNegLabeld to generate 2 x 4 images for network training
+            train_loader = DataLoader(
+            train_ds,
+            batch_size = batch_size,
+            shuffle = True,
+            num_workers = 8,
+            collate_fn = custom_collate,
+            pin_memory = torch.cuda.is_available())
+            
+            # create a validation data loader
+            val_ds = monai.data.Dataset(data = val_files, transform = val_transforms)
+            val_loader = DataLoader(val_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
 
-                # use batch_size=2 to load images and use RandCropByPosNegLabeld to generate 2 x 4 images for network training
-                train_loader = DataLoader(
-                train_ds,
-                batch_size = batch_size,
-                shuffle = True,
-                num_workers = 8,
-                collate_fn = custom_collate,
-                pin_memory = torch.cuda.is_available())
-                
-                # create a validation data loader
-                val_ds = monai.data.Dataset(data = val_files, transform = val_transforms)
-                val_loader = DataLoader(val_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
+            # create a test data loader
+            test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
+            test_loader = DataLoader(test_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
+            
+            for opt in optimizers:
 
-                # create a test data loader
-                test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
-                test_loader = DataLoader(test_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
-                
-                for opt in optimizers:
+                for lr in learning_rates:
 
-                    for lr in learning_rates:
+                    model = smp.FPN(encoder_name = "resnet34",
+                                classes = 1,
+                                encoder_weights = "imagenet",
+                                in_channels = 1,
+                                activation = "sigmoid")
 
-                        model = smp.FPN(encoder_name = "resnet34",
-                                    classes = 1,
-                                    encoder_weights = "imagenet",
-                                    in_channels = 1,
-                                    activation = "sigmoid")
+                    writer = SummaryWriter(log_dir = "runs/" + "batch=" + str(batch_size) + "_train=" + str(train_split) + 
+                    "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr))
 
-                        writer = SummaryWriter(log_dir = "runs/" + "batch=" + str(batch_size) + "_train=" + str(train_split) + 
-                        "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr))
+                    loss = smp.utils.losses.DiceLoss()
 
-                        loss = smp.utils.losses.DiceLoss()
+                    metrics = [
+                    smp.utils.metrics.IoU(threshold = 0.5)
+                    ]
 
-                        metrics = [
-                        smp.utils.metrics.IoU(threshold = 0.5)
-                        ]
+                    if opt == "adam":
+                        optimizer = torch.optim.Adam([
+                            dict(params = model.parameters(), lr = lr)])
 
-                        if opt == "adam":
-                            optimizer = torch.optim.Adam([
-                                dict(params = model.parameters(), lr = lr)])
+                    elif opt == "SGD":
+                        optimizer = torch.optim.SGD([
+                            dict(params = model.parameters(), lr = lr, momentum = 0.9)])
+                    
+                    train_epoch = smp.utils.train.TrainEpoch(
+                        model,
+                        loss = loss,
+                        metrics = metrics,
+                        optimizer = optimizer,
+                        device = "cuda",
+                        verbose = True)
 
-                        elif opt == "SGD":
-                            optimizer = torch.optim.SGD([
-                                dict(params = model.parameters(), lr = lr, momentum = 0.9)])
+                    valid_epoch = smp.utils.train.ValidEpoch(
+                        model,
+                        loss = loss,
+                        metrics = metrics,
+                        device = "cuda",
+                        verbose = True)
+
+                    # train model for 40 epochs
+                    max_score = 0
+
+                    for i in range(0, 20):
+
+                        print("\nEpoch: {}".format(i))
+                        train_logs = train_epoch.run(train_loader)
+                        valid_logs = valid_epoch.run(val_loader)
+
+                        writer.add_scalar("Loss/Train", train_logs["dice_loss"], i)
+                        writer.add_scalar("Loss/Valid", valid_logs["dice_loss"], i)
+
+                        writer.add_scalar("Score/Train", train_logs["iou_score"], i)
+                        writer.add_scalar("Score/Valid", valid_logs["iou_score"], i)
                         
-                        train_epoch = smp.utils.train.TrainEpoch(
-                            model,
-                            loss = loss,
-                            metrics = metrics,
-                            optimizer = optimizer,
-                            device = "cuda",
-                            verbose = True)
+                        # do something (save model, change lr, etc.)
+                        if max_score < valid_logs["iou_score"]:
+                            max_score = valid_logs["iou_score"]
+                            torch.save(model, "batch=" + str(batch_size) + "_train=" + str(train_split) + 
+                            "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
 
-                        valid_epoch = smp.utils.train.ValidEpoch(
-                            model,
-                            loss = loss,
-                            metrics = metrics,
-                            device = "cuda",
-                            verbose = True)
+                    writer.flush()
 
-                        # train model for 40 epochs
-                        max_score = 0
-
-                        for i in range(0, 20):
-
-                            print("\nEpoch: {}".format(i))
-                            train_logs = train_epoch.run(train_loader)
-                            valid_logs = valid_epoch.run(val_loader)
-
-                            writer.add_scalar("Loss/Train", train_logs["dice_loss"], i)
-                            writer.add_scalar("Loss/Valid", valid_logs["dice_loss"], i)
-
-                            writer.add_scalar("Score/Train", train_logs["iou_score"], i)
-                            writer.add_scalar("Score/Valid", valid_logs["iou_score"], i)
-                            
-                            # do something (save model, change lr, etc.)
-                            if max_score < valid_logs["iou_score"]:
-                                max_score = valid_logs["iou_score"]
-
-                        writer.flush()
+                    # inference
+                    model = torch.load("batch=" + str(batch_size) + "_train=" + str(train_split) + 
+                            "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
+                    pred = model.predict(test_loader)

@@ -1,0 +1,46 @@
+---
+title: 'STA437: Project presentation'
+author: "Joël Meili"
+date: "6/7/2022"
+output: 
+  beamer_presentation:
+    theme: "Boadilla"
+    colortheme: "whale"
+    fonttheme: "structurebold"
+    slide_level: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+
+require(png)
+require(grid)
+require(gridExtra)
+```
+
+## Agenda
+- Data set
+- Comparison between Adam and SGD optimizer
+- Code availability
+
+## Data set
+- blablabalbalblabl
+- The data can be found here: [**https://covid-segmentation.grand-challenge.org/**](https://covid-segmentation.grand-challenge.org/)
+
+## Comparison between Adam and SGD optimizer
+- Adam performs better than SGD for all three learning rates: 1e-3, 1e-4 and 1e-5
+
+```{r}
+g1 <- rasterGrob(as.raster(readPNG("figures/optimizer_comparison_0_train_loss.png")), interpolate = FALSE)
+g2 <- rasterGrob(as.raster(readPNG("figures/optimizer_comparison_1_train_loss.png")), interpolate = FALSE)
+g3 <- rasterGrob(as.raster(readPNG("figures/optimizer_comparison_2_train_loss.png")), interpolate = FALSE)
+
+g4 <- rasterGrob(as.raster(readPNG("figures/optimizer_comparison_0_val_loss.png")), interpolate = FALSE)
+g5 <- rasterGrob(as.raster(readPNG("figures/optimizer_comparison_1_val_loss.png")), interpolate = FALSE)
+g6 <- rasterGrob(as.raster(readPNG("figures/optimizer_comparison_2_val_loss.png")), interpolate = FALSE)
+
+grid.arrange(g1, g2, g3, g4, g5, g6, ncol = 3, nrow = 2)
+```
+
+## Code availability
+- The source code is available in this Github repository: [**https://github.com/joelmeili/STA437/**](https://github.com/joelmeili/STA437/)
