@@ -118,7 +118,7 @@ dropout = 0.2, architecture = "resnet34", encoder_weights = "imagenet", lr = 1e-
 
         writer.add_scalar("Score/Train", train_logs["iou_score"], i)
         writer.add_scalar("Score/Valid", valid_logs["iou_score"], i)
-        writer.add_scalar("Score/Test", test_score["iou_score"], i)
+        writer.add_scalar("Score/Test", test_logs["iou_score"], i)
         
         # do something (save model, change lr, etc.)
         if max_score < valid_logs["iou_score"]:
