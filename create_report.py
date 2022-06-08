@@ -40,8 +40,8 @@ def plot_scenario(scenario, plot_name):
         ax1.plot(x, train_loss(x), label = run)
         ax2.plot(x, val_loss(x), label = run)
     
-    ax1.legend(loc = "upper right", bbox_to_anchor = (2, 1))
-    ax2.legend(loc = "upper right", bbox_to_anchor = (2, 1))
+    ax1.legend(loc = "upper right", bbox_to_anchor = (2.5, 1))
+    ax2.legend(loc = "upper right", bbox_to_anchor = (2.5, 1))
     
     fig1.savefig("figures/" + plot_name + "_train_loss.png", bbox_inches = "tight")
     fig2.savefig("figures/" + plot_name + "_val_loss.png", bbox_inches = "tight")

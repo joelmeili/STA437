@@ -191,35 +191,4 @@ if __name__ == "__main__":
                                     torch.save(model, "models/best_model.pth")
                                     torch.save(test_loader, "test_loader_for_inference.pth")
 
-                            writer.flush()
-
-                    """
-                    # inference
-                    model = torch.load("models/batch=" + str(batch_size) + "_train=" + str(train_split) + 
-                            "_test=" + str(test_split) + "_opt=" + opt + "_lr=" + str(lr) + ".pth")
-                    
-                    model = torch.load('batch=2_train=0.7_test=0.1_opt=adam_lr=0.0001.pth')
-
-                    score = []
-
-                    for image, mask in test_loader:
-                        pred = model(image.cuda())
-
-                        for i in range(len(image)):
-                            target = mask[i, :, :, :]
-                            pr_mask = pred[i, :, :, :]
-                            
-                            temp_score = smp.utils.metrics.IoU().forward(pr_mask, target.cuda())
-                            score.append(temp_score.cpu())
-
-                    max_values = np.argsort(score)[-5:]
-                    max_values = [score[i] for i in range(len(score)) if i in max_values]
-
-                    min_values = -(np.argsort(score))[-5:]
-                    min_values = [score[i] for i in range(len(score)) if i in min_values]
-
-                    print(max_values, min_values)
-                    """
-
-                            
-                            
+                            writer.flush()                          

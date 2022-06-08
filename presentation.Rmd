@@ -24,7 +24,8 @@ require(gridExtra)
 - Code availability
 
 ## Data set
-- blablabalbalblabl
+- The data set consists out of 199 chest CT volumes of patients with positive RT-PCR for SARS-CoV2
+- The goal of the data set is to annotate lesions in the lung CT
 - The data can be found here: [**https://covid-segmentation.grand-challenge.org/**](https://covid-segmentation.grand-challenge.org/)
 
 ## Comparison between Adam and SGD optimizer
@@ -41,6 +42,8 @@ g6 <- rasterGrob(as.raster(readPNG("figures/optimizer_comparison_2_val_loss.png"
 
 grid.arrange(g1, g2, g3, g4, g5, g6, ncol = 3, nrow = 2)
 ```
+
+## Model inference
 
 ## Code availability
 - The source code is available in this Github repository: [**https://github.com/joelmeili/STA437/**](https://github.com/joelmeili/STA437/)
