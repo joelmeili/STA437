@@ -198,7 +198,6 @@ if __name__ == "__main__":
     test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
     test_loader = DataLoader(test_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)     
 
-    """
     # train base model
     train_model(train_loader = train_loader, valid_loader = val_loader, test_loader = test_loader)
 
@@ -217,7 +216,6 @@ if __name__ == "__main__":
     # train different optimizer
     train_model(train_loader = train_loader, valid_loader = val_loader, 
     test_loader = test_loader, opt = "SGD", name = "optimizer")
-    """
 
     # train with augmentation model
     train_ds_aug = monai.data.Dataset(data = train_files, transform = train_transforms_augmented)
@@ -233,7 +231,6 @@ if __name__ == "__main__":
     train_model(train_loader = train_loader_aug, valid_loader = val_loader,
     test_loader = test_loader, name = "augmented")
 
-    """
     # train different train split
     train_files, val_files, test_files = create_data_splits(train_split = 0.5, test_split = test_split)
     
@@ -255,4 +252,3 @@ if __name__ == "__main__":
 
     train_model(train_loader = train_loader, valid_loader = val_loader,
     test_loader = test_loader, name = "split")
-    """
