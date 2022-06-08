@@ -48,15 +48,15 @@ for i in range(len(max_values)):
 
     # image
     plt.imshow(np.transpose(image))
-    plt.set_title("")
+    plt.title("Original image")
     plt.savefig("inference/image" + str(i) + ".png")
 
     # truth
     plt.imshow(np.transpose(truth))
-    plt.set_title("Ground truth")
+    plt.title("Ground truth")
     plt.savefig("inference/truth" + str(i) + ".png")
 
     # pred
     plt.imshow(np.transpose(mask.detach()))
-    plt.set_title("Predicted mask")
+    plt.title("Predicted mask")
     plt.savefig("inference/pred" + str(i) + ".png")
