@@ -44,5 +44,4 @@ for i in range(1):
     truth = ground_truth[i]
     mask = pred_mask[i]
 
-    fig = plt.imshow(np.transpose(image))
-    fig.savefig("test.png")
+    plt.imshow(np.transpose(image)).savefig("test.png")
