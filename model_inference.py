@@ -39,19 +39,19 @@ img = [img[i] for i in range(len(img)) if i in max_values]
 ground_truth = [ground_truth[i] for i in range(len(ground_truth)) if i in max_values]
 pred_mask = [pred_mask[i] for i in range(len(pred_mask)) if i in max_values]
 
-for i in range(1):
+for i in range(len(max_values)):
     image = img[i]
     truth = ground_truth[i]
     mask = pred_mask[i]
 
     # image
     plt.imshow(np.transpose(image))
-    plt.savefig("image.png")
+    plt.savefig("inference/image" + str(i) + ".png")
 
     # truth
     plt.imshow(np.transpose(truth))
-    plt.savefig("truth.png")
+    plt.savefig("inference/truth" + str(i) + ".png")
 
     # pred
     plt.imshow(np.transpose(mask.detach()))
-    plt.savefig("pred.png")
+    plt.savefig("inference/pred" + str(i) + ".png")
