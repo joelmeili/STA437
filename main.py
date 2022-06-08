@@ -36,7 +36,7 @@ def custom_collate(batch):
     
     return [images, segs]
 
-def create_data_splits(train_split, tets_split):
+def create_data_splits(train_split, test_split):
     # get path to all volumes
     images = sorted(glob("images/*_ct.nii.gz"))
 
