@@ -40,6 +40,7 @@ def create_data_splits(train_split, tets_split):
     # get path to all volumes
     images = sorted(glob("images/*_ct.nii.gz"))
 
+    random.seed(2020)
     train_images = random.sample(images, int(train_split * len(images)))
     val_images = list(set(images) - set(train_images))
     test_images = random.sample(val_images, int(test_split * len(images)))
@@ -56,11 +57,11 @@ def create_data_splits(train_split, tets_split):
     return train_files, val_files, test_files
 
 def train_model(train_loader, valid_loader, test_loader, name = "base_line", opt = "adam", 
-dropout = 0.2, architecture = "resnet34", encoder_weights = "imagenet", lr = 1e-4):
+dropout = 0.2, architecture = "resnet34", lr = 1e-4):
     
     model = smp.FPN(encoder_name = architecture,
                 classes = 1,
-                encoder_weights = encoder_weights,
+                encoder_weights = "imagenet",
                 in_channels = 1,
                 activation = "sigmoid",
                 decoder_dropout = dropout)
@@ -174,10 +175,6 @@ if __name__ == "__main__":
     train_split = 0.7
     test_split = 0.1
     batch_size = 2
-    architecture = "resnet34"
-    encoder_weights = "imagenet"
-    optimizer = ""
-    dropout = 2
 
     train_files, val_files, test_files = create_data_splits(train_split, test_split)
     
@@ -201,5 +198,61 @@ if __name__ == "__main__":
     test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
     test_loader = DataLoader(test_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)     
 
+    """
     # train base model
-    train_model(train_loader = train_loader, valid_loader = val_loader, test_loader = test_loader)        
+    train_model(train_loader = train_loader, valid_loader = val_loader, test_loader = test_loader)
+
+    # train different architecture model
+    train_model(train_loader = train_loader, valid_loader = val_loader, 
+    test_loader = test_loader, architecture = "resnet50", name = "architecture")
+    
+    # train different learning rate model
+    train_model(train_loader = train_loader, valid_loader = val_loader, 
+    test_loader = test_loader, lr = 1e-5, name = "learning_rate")
+
+    # train different drop out rate
+    train_model(train_loader = train_loader, valid_loader = val_loader, 
+    test_loader = test_loader, dropout = 1e-4, name = "drop_out")
+    
+    # train different optimizer
+    train_model(train_loader = train_loader, valid_loader = val_loader, 
+    test_loader = test_loader, opt = "SGD", name = "optimizer")
+    """
+
+    # train with augmentation model
+    train_ds_aug = monai.data.Dataset(data = train_files, transform = train_transforms_augmented)
+
+    train_loader_aug = DataLoader(
+    train_ds_aug,
+    batch_size = batch_size,
+    shuffle = True,
+    num_workers = 8,
+    collate_fn = custom_collate,
+    pin_memory = torch.cuda.is_available())
+
+    train_model(train_loader = train_loader_aug, valid_loader = val_loader,
+    test_loader = test_loader, name = "augmented")
+
+    """
+    # train different train split
+    train_files, val_files, test_files = create_data_splits(train_split = 0.5, test_split = test_split)
+    
+    train_ds = monai.data.Dataset(data = train_files, transform = train_transforms)
+
+    train_loader = DataLoader(
+    train_ds,
+    batch_size = batch_size,
+    shuffle = True,
+    num_workers = 8,
+    collate_fn = custom_collate,
+    pin_memory = torch.cuda.is_available())
+    
+    val_ds = monai.data.Dataset(data = val_files, transform = val_transforms)
+    val_loader = DataLoader(val_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)
+
+    test_ds = monai.data.Dataset(data = test_files, transform = test_transforms)
+    test_loader = DataLoader(test_ds, batch_size = batch_size, num_workers = 8, shuffle = False, collate_fn = custom_collate)   
+
+    train_model(train_loader = train_loader, valid_loader = val_loader,
+    test_loader = test_loader, name = "split")
+    """
