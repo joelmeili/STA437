@@ -40,7 +40,7 @@ max_img = [img[i] for i in range(len(img)) if i in max_values]
 max_ground_truth = [ground_truth[i] for i in range(len(ground_truth)) if i in max_values]
 max_pred_mask = [pred_mask[i] for i in range(len(pred_mask)) if i in max_values]
 
-print(scores, [scores[i] for i in range(len(scores)) if i in np.argsort(scores)[-5:]])
+print([scores[i] for i in range(len(scores)) if i in min_values])
 
 """
 min_img = [img[i] for i in range(len(img)) if i in min_values]
