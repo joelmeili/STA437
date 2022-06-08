@@ -34,29 +34,58 @@ for image, mask in test_loader:
             pred_mask.append(pr_mask)        
 
 max_values = np.argsort(scores)[-5:]
+min_values = np.argsort(scores)[:5]
 
-img = [img[i] for i in range(len(img)) if i in max_values]
-ground_truth = [ground_truth[i] for i in range(len(ground_truth)) if i in max_values]
-pred_mask = [pred_mask[i] for i in range(len(pred_mask)) if i in max_values]
+max_img = [img[i] for i in range(len(img)) if i in max_values]
+max_ground_truth = [ground_truth[i] for i in range(len(ground_truth)) if i in max_values]
+max_pred_mask = [pred_mask[i] for i in range(len(pred_mask)) if i in max_values]
 
-print([scores[i] for i in range(len(scores)) if i in max_values])
+print(scores, [scores[i] for i in range(len(scores)) if i in np.argsort(scores)[-5:]])
+
+"""
+min_img = [img[i] for i in range(len(img)) if i in min_values]
+min_ground_truth = [ground_truth[i] for i in range(len(ground_truth)) if i in min_values]
+min_pred_mask = [pred_mask[i] for i in range(len(pred_mask)) if i in min_values]
+"""
 
 for i in range(len(max_values)):
-    image = img[i]
-    truth = ground_truth[i]
-    mask = pred_mask[i]
+    image = max_img[i]
+    truth = max_ground_truth[i]
+    mask = max_pred_mask[i]
 
     # image
     plt.imshow(np.transpose(image))
     plt.title("Original image")
-    plt.savefig("inference/image" + str(i) + ".png")
+    plt.savefig("inference/max_image" + str(i) + ".png")
 
     # truth
     plt.imshow(np.transpose(truth))
     plt.title("Ground truth")
-    plt.savefig("inference/truth" + str(i) + ".png")
+    plt.savefig("inference/max_truth" + str(i) + ".png")
 
     # pred
     plt.imshow(np.transpose(mask.detach()))
     plt.title("Predicted mask")
-    plt.savefig("inference/pred" + str(i) + ".png")
+    plt.savefig("inference/max_pred" + str(i) + ".png")
+
+"""
+for i in range(len(min_values)):
+    image = min_img[i]
+    truth = min_ground_truth[i]
+    mask = min_pred_mask[i]
+
+    # image
+    plt.imshow(np.transpose(image))
+    plt.title("Original image")
+    plt.savefig("inference/min_image" + str(i) + ".png")
+
+    # truth
+    plt.imshow(np.transpose(truth))
+    plt.title("Ground truth")
+    plt.savefig("inference/min_truth" + str(i) + ".png")
+
+    # pred
+    plt.imshow(np.transpose(mask.detach()))
+    plt.title("Predicted mask")
+    plt.savefig("inference/min_pred" + str(i) + ".png")
+"""
