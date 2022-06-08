@@ -40,13 +40,9 @@ max_img = [img[i] for i in range(len(img)) if i in max_values]
 max_ground_truth = [ground_truth[i] for i in range(len(ground_truth)) if i in max_values]
 max_pred_mask = [pred_mask[i] for i in range(len(pred_mask)) if i in max_values]
 
-print([scores[i] for i in range(len(scores)) if i in min_values])
-
-"""
 min_img = [img[i] for i in range(len(img)) if i in min_values]
 min_ground_truth = [ground_truth[i] for i in range(len(ground_truth)) if i in min_values]
 min_pred_mask = [pred_mask[i] for i in range(len(pred_mask)) if i in min_values]
-"""
 
 for i in range(len(max_values)):
     image = max_img[i]
@@ -68,7 +64,6 @@ for i in range(len(max_values)):
     plt.title("Predicted mask")
     plt.savefig("inference/max_pred" + str(i) + ".png")
 
-"""
 for i in range(len(min_values)):
     image = min_img[i]
     truth = min_ground_truth[i]
@@ -88,4 +83,3 @@ for i in range(len(min_values)):
     plt.imshow(np.transpose(mask.detach()))
     plt.title("Predicted mask")
     plt.savefig("inference/min_pred" + str(i) + ".png")
-"""
