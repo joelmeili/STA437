@@ -53,5 +53,5 @@ for i in range(1):
     plt.savefig("truth.png")
 
     # pred
-    plt.imshow(np.transpose(mask))
+    plt.imshow(np.transpose(mask.detach()))
     plt.savefig("pred.png")
