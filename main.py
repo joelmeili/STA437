@@ -96,6 +96,13 @@ dropout = 0.2, architecture = "resnet34", encoder_weights = "imagenet", lr = 1e-
         device = "cuda",
         verbose = True)
 
+    test_epoch = smp.utils.train.ValidEpoch(
+        model,
+        loss = loss,
+        metrics = metrics,
+        device = "cuda",
+        verbose = True)
+
     # train model for 40 epochs
     max_score = 0
     
@@ -104,12 +111,14 @@ dropout = 0.2, architecture = "resnet34", encoder_weights = "imagenet", lr = 1e-
         print("\nEpoch: {}".format(i))
         train_logs = train_epoch.run(train_loader)
         valid_logs = valid_epoch.run(val_loader)
+        test_logs = test_epoch.run(test_loader)
 
         writer.add_scalar("Loss/Train", train_logs["dice_loss"], i)
         writer.add_scalar("Loss/Valid", valid_logs["dice_loss"], i)
 
         writer.add_scalar("Score/Train", train_logs["iou_score"], i)
         writer.add_scalar("Score/Valid", valid_logs["iou_score"], i)
+        writer.add_scalar("Score/Test", test_score["iou_score"], i)
         
         # do something (save model, change lr, etc.)
         if max_score < valid_logs["iou_score"]:
