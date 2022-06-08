@@ -44,6 +44,16 @@ grid.arrange(g1, g2, g3, g4, g5, g6, ncol = 3, nrow = 2)
 ```
 
 ## Model inference
+- Top 5 test predictions based on the IoU-score
+
+```{r}
+g1 <- rasterGrob(as.raster(readPNG("inference/image0.png")), interpolate = FALSE)
+g2 <- rasterGrob(as.raster(readPNG("inference/truth0.png")), interpolate = FALSE)
+g3 <- rasterGrob(as.raster(readPNG("inference/pred0.png")), interpolate = FALSE)
+
+grid.arrange(g1, g2, g3, ncol = 3)
+```
+
 
 ## Code availability
 - The source code is available in this Github repository: [**https://github.com/joelmeili/STA437/**](https://github.com/joelmeili/STA437/)

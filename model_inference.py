@@ -13,7 +13,7 @@ def custom_collate(batch):
 model = torch.load("models/best_model.pth", map_location = torch.device("cpu"))
 test_loader = torch.load("test_loader_for_inference.pth", map_location = torch.device("cpu"))
 
-score = []
+scores = []
 img = []
 ground_truth = []
 pred_mask = []
@@ -28,16 +28,18 @@ for image, mask in test_loader:
         if target.max() > 0:
         
             temp_score = smp.utils.metrics.IoU().forward(pr_mask, target)
-            score.append(temp_score.cpu().numpy())
+            scores.append(temp_score.cpu().numpy())
             img.append(image[i, :, :, :])
             ground_truth.append(target)
             pred_mask.append(pr_mask)        
 
-max_values = np.argsort(score)[-5:]
+max_values = np.argsort(scores)[-5:]
 
 img = [img[i] for i in range(len(img)) if i in max_values]
 ground_truth = [ground_truth[i] for i in range(len(ground_truth)) if i in max_values]
 pred_mask = [pred_mask[i] for i in range(len(pred_mask)) if i in max_values]
+
+print([scores[i] for i in range(len(scores)) if i in max_values])
 
 for i in range(len(max_values)):
     image = img[i]
@@ -46,12 +48,15 @@ for i in range(len(max_values)):
 
     # image
     plt.imshow(np.transpose(image))
+    plt.set_title("")
     plt.savefig("inference/image" + str(i) + ".png")
 
     # truth
     plt.imshow(np.transpose(truth))
+    plt.set_title("Ground truth")
     plt.savefig("inference/truth" + str(i) + ".png")
 
     # pred
     plt.imshow(np.transpose(mask.detach()))
+    plt.set_title("Predicted mask")
     plt.savefig("inference/pred" + str(i) + ".png")
